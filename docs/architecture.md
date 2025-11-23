@@ -9,20 +9,21 @@ This document describes the main components of a Uniline node and how they inter
 ```text
 PHONE / HOST
 (Android / laptop)
-   │  USB-C (serial + audio)
-   │  Bluetooth (BLE + HFP)
+   │  USB-C (WebSerial +  USB Audio)
+   │  Bluetooth (BLE control +  HFP audio)
    ▼
-┌────────────────────────────┐
-│        Uniline Node        │
-├────────────────────────────┤
-│ Mode Control (Data/Monitor/Talk)
-│ Crypto Layer (E2EE for data)
-│ Modem + TTY DSP
-├────────────────────────────┤
-│ Analog Audio Switch
-│ FXO Line Interface
-│ Off-Hook Control & Line Sensing
-└────────────────────────────┘
+┌───────────────────────────────┐
+│          Uniline Node         │
+├───────────────────────────────┤
+│ Mode Manager (Monitor/Talk/Data)
+│ DSP Layer (Modem + TTY + Tone Detectors)
+│ Protocol Engine (WebSerial/WebUSB framing)
+│ Crypto Layer (E2EE for Data Mode)        
+├───────────────────────────────┤
+│ Audio Router (Voice/TTY/Modem paths)
+│ FXO Line Interface (Isolation + Sensing)
+│ Off-Hook Control & Protection Stack
+└───────────────────────────────┘
    │
    ▼
 Analog Line / PSTN
@@ -32,90 +33,173 @@ Analog Line / PSTN
 
 ## Host Interface
 
-The host (phone or laptop) connects via:
+The host uses **browser-based software** instead of native apps. It connects through:
 
-* **USB-C**:
+### **USB‑C (primary)**
 
-  * serial or CDC interface for data control/messages
-  * USB Audio Class (UAC) for voice/TTY audio
-* **Bluetooth** (optional):
+* WebSerial for command/data channel
+* Optional USB Audio Class for voice/TTY audio
+* Fully offline, lowest latency
 
-  * BLE for control and data
-  * HFP for voice-band audio
+### **Bluetooth (fallback)**
 
-The host runs a client app that can:
+* BLE for control & data (low-bandwidth)
+* HFP for voice-band audio
+* Used when USB is unavailable
 
-* send/receive encrypted messages
-* drive TTY text calls
-* act as a handset for voice calls
-* display line and mode status
+### Host responsibilities
 
----
+The browser-based Web GUI provides:
 
-## Line Interface
+* Encrypted messaging UI
+* TTY call UI (Baudot, VCO/HCO)
+* Voice handset (via mic/speaker)
+* Mode selection & status display
+* Line diagnostics (Monitor mode)
 
-The line interface provides:
-
-* galvanic isolation
-* surge and overvoltage protection
-* on-hook / off-hook control (FXO behavior)
-* line-voltage and line-current sensing
-* audio coupling for modem/voice/TTY signals
-
-It should be designed to:
-
-* respect regulatory constraints in the relevant region
-* avoid interfering with life-safety systems
-* fail safely if misused
+No native apps required—entire host stack runs in the Web GUI.
 
 ---
 
-## Modem and TTY Layer
+## Line Interface (FXO)
 
-The DSP layer is responsible for:
+The FXO subsystem provides:
 
-* establishing and maintaining an analog modem link for data mode
-* modulating and demodulating TTY Baudot tones
-* detecting dial tone and other supervisory tones where appropriate
-* reporting line conditions to the host app
+* Transformer or solid‑state **galvanic isolation**
+* Surge protection (MOV + TVS stack)
+* **On-hook / off-hook** control
+* Ring detection
+* Voltage & current sensing
+* Safe high‑impedance monitor path
 
-Data mode and TTY mode share this layer but use different profiles and framing.
+It must:
+
+* Respect telco electrical standards
+* Avoid false off‑hook conditions
+* Fail safely
+* Protect both host and PSTN
+
+This subsystem maps directly to the hardware docs:
+
+* `hardware/fxo-interface.md`
+* `hardware/isolation-and-safety.md`
+* `hardware/line-monitor.md`
+
+---
+
+## DSP Layer (Modem + TTY)
+
+A unified DSP layer supports all analog signaling:
+
+### **For Data Mode**
+
+* FSK/PSK modem
+* Carrier detect
+* SNR + BER estimation
+* Framing & error stats to host
+
+### **For TTY**
+
+* Baudot encode/decode
+* Tone presence detection
+* Support for TTY, VCO, HCO hybrids
+
+### **For Monitor Mode**
+
+* Dial tone detection
+* Modem carrier detect
+* TTY tone recognition
+* Noise floor measurement
+
+The DSP architecture mirrors:
+
+* `firmware/endpoint/dsp/README.md`
+
+---
+
+## Protocol Layer (Host ↔ Node)
+
+Communication with the Web GUI uses a binary protocol over:
+
+* **WebSerial** (USB‑C)
+* **WebUSB** ()
+* **BLE** (slow fallback)
+
+Protocol features:
+
+* Consistent framing
+* CRC‑16 integrity
+* Commands (SET_MODE, CALL, SEND_DATA, etc.)
+* Async events (EVT_MODE, EVT_TONE, EVT_STATUS)
+
+Defined in:
+
+* `firmware/endpoint/protocol/README.md`
 
 ---
 
 ## Crypto Layer (Data Mode)
 
-The crypto layer:
+Because PSTN is untrusted, Data Mode uses:
 
-* assumes the analog line and PSTN are untrusted
-* provides confidentiality and integrity for data messages
-* may use pre-shared keys, QR-encoded secrets, or other schemes
-  (TBD in `docs/protocol.md`)
+* E2EE encryption
+* Optional pre-shared keys
+* QR‑scannable secrets
+* Ephemeral session keys (TBD)
 
-TTY and voice may be unencrypted or separately secured at the application level; the base design treats them as plain audio paths.
+Crypto applies **after** modem framing, making the analog side simple.
+
+Voice and TTY paths remain plain audio unless application-level encryption is layered on top.
 
 ---
 
 ## Operating Modes
 
-Uniline uses three main modes defined by physical line interaction:
+Uniline supports three unified modes, each enforced by firmware safety rules.
 
-* **Data mode**
+### **1. Monitor Mode**
 
-  * off-hook as needed to establish a modem link
-  * DSP dedicated to digital carrier
-  * host app presents a message/telemetry UI
+* High‑impedance
+* Passive listen only
+* Line state + tone detection
+* Safe default
 
-* **Monitor mode**
+### **2. Talk Mode**
 
-  * high-impedance, on-hook listening
-  * does not seize the line
-  * used for diagnostics and TTY/modem detection
+* Off‑hook
+* Voice path active (mic/speaker)
+* TTY decode/encode
+* DTMF dialing
 
-* **Talk mode**
+### **3. Data Mode**
 
-  * off-hook, audio path active
-  * host provides mic/speaker (voice handset)
-  * can send/receive TTY tones and DTMF
+* Off‑hook modem link
+* Encrypted data exchange
+* Link quality stats
 
-Mode switching is controlled by the host app and enforced in firmware to prevent conflicting states.
+Modes reference:
+
+* `firmware/endpoint/modes/README.md`
+
+---
+
+## How This Fits Into the Repo Structure
+
+```
+/docs/architecture.md      ← this document (system overview)
+/hardware/                 ← physical/electrical implementation
+/firmware/endpoint/        ← embedded logic, DSP, protocol, modes
+/web/                      ← browser-based GUI (no native apps)
+```
+
+---
+
+## Status
+
+Architecture updated to match the new hardware and firmware documentation. May evolve as prototypes develop.
+
+---
+
+## License
+
+CC0 1.0 (Public Domain).
