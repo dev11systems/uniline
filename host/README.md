@@ -1,76 +1,64 @@
-# Uniline Web GUI
+# Uniline Host Software
 
-The Uniline Web GUI is the **primary user interface** for operating a Uniline node. It runs entirely in the browser and is designed to work:
+The `/host` directory contains all host-side software and interfaces that talk to a Uniline node.
 
-- offline
-- without cell or Wi-Fi
-- on phones, tablets, and laptops
+Uniline is designed to be **web-first**:
 
-All you need is:
+- the primary interface is a **browser-based Web GUI**
+- no native apps are required
+- everything runs locally and offline
 
-- a Uniline node
-- a USB-C cable (preferred) or Bluetooth
-- a modern browser with WebSerial/WebUSB/WebBluetooth support
+Other host tools (CLI, native GUI, mobile wrappers) are optional and may reuse the same device-level API.
 
 ---
 
-## Capabilities
+## Host Interfaces
 
-The Web GUI provides:
+### 1. Web GUI (Primary)
 
-### 1. Mode Control
+Located in [`host/web`](./web).
 
-- switch between **Data**, **Monitor**, and **Talk** modes
-- see current line state:
-  - on-hook / off-hook
-  - dial tone present / absent
-  - ringing / idle
-  - link quality indicators
+- Runs in any modern browser (desktop or mobile)
+- Can be served directly from the Uniline node **or** loaded as a static app
+- Uses WebSerial/WebUSB/WebBluetooth or a USB-NIC + HTTP to talk to the device
+- Provides:
+  - mode control (Data / Monitor / Talk)
+  - secure messaging and logs
+  - TTY view and controls
+  - line diagnostics and status
 
-### 2. Secure Messaging (Data Mode)
+### 2. CLI (Optional)
 
-- send and receive encrypted text messages
-- view message logs and delivery state
-- show basic link stats (throughput, retries, error rate)
-- support small telemetry/status messages
+Located in [`host/cli`](./cli) (conceptual).
 
-### 3. TTY Text Support
+- Scriptable interface for development, debugging, and automation
+- Talks to the device over the same control protocol
+- May be implemented later in Python / Rust / Go
 
-- live TTY (Baudot) decode and display
-- type-to-TTY input
-- auto-detection of incoming TTY tones
-- hybrid modes such as VCO/HCO
-- optional “TTY-over-data” fallback for very noisy lines
+### 3. Native Desktop / Mobile (Optional)
 
-### 4. Voice / Talk Mode
+[`host/gui`](./gui) and [`host/mobile`](./mobile) describe possible native wrappers:
 
-- use the device mic/speaker or headset
-- call controls (dialpad, hangup, timer)
-- visual status for audio path and line state
-
-### 5. Monitor / Diagnostics
-
-- high-impedance Monitor mode
-- noise level visualization
-- dial tone / ring detection
-- TTY/modem tone detection
-- quick indication of whether a line is usable
+- may embed the Web UI
+- or reuse the same underlying API as the web client
+- considered **nice-to-have**, not required for core Uniline functionality
 
 ---
 
-## Architecture
+## Web-First Philosophy
 
-Two main deployment patterns:
+The host layer is intentionally:
 
-### A. Served from the Uniline Node
+- **device-agnostic** — anything with a browser can be a console
+- **offline-first** — no cloud, no tracking, no external dependencies
+- **maintainable** — one primary UI codebase instead of many
+- **open** — HTML/JS/CSS and simple APIs that are easy to inspect and extend
 
-The Uniline device runs a tiny HTTP server:
+---
 
-```text
-Browser (phone/laptop)
-   │  USB-NIC / Wi-Fi AP
-   ▼
-Uniline Web Server
-   │
-   ▼
-Device Control + Line Interface
+## Status
+
+- Web GUI: in early design; see [`host/web`](./web)
+- CLI / native GUIs: conceptual, not implemented
+
+All host software is released under **CC0 1.0** (Public Domain).
