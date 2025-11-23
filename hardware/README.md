@@ -1,108 +1,131 @@
 # Uniline Hardware
 
-This directory contains all hardware-related documentation, design notes, and build resources for the Uniline node.
+The Uniline hardware module provides the physical interface between a host device (phone or laptop) and the analog telephone network (POTS). It is designed for resilience, safety, and simplicity — enabling DATA, VOICE, and TTY operation with minimal components.
 
-The hardware is intentionally simple, modular, and open—designed for resilience, maintainability, and educational clarity.
+This directory contains documentation and references for:
 
----
+* The FXO line interface
+* Isolation and safety requirements
+* Audio routing and switching
+* Mode control hardware
+* Power design
+* PCB schematics
+* Bill of materials (BOM)
 
-## Hardware Goals
-
-* **Safe** interaction with analog phone lines (PSTN / local loop)
-* **Low-complexity** design using widely available components
-* **Modular** architecture (FXO module, DSP/MCU module, power subsystem)
-* **Hackable** and easy to repair or modify
-* **Survivable** in field conditions
-* **Open-source** for community improvement
-
-Uniline is *not* intended to replace certified telecom equipment. It is a resilience tool, not a commercial telephone device.
+Uniline is intended for educational, humanitarian, and resilience-focused use.
 
 ---
 
-## Core Components
+## Goals
 
-### **1. FXO Line Interface Module**
+* **Safe, isolated access** to analog phone lines
+* **Unified hardware path** for data, voice, and TTY
+* **Low part-count design** suitable for small-scale or DIY manufacturing
+* **High-impedance monitoring** without seizing the line
+* **Configurable off-hook control** for voice or data
+* **Modular sections**: audio, DSP, detection, FXO interface
+* **Compatible with WebSerial/WebUSB firmware** running on the MCU
 
-Responsible for:
+---
 
-* line isolation
-* surge protection
-* on-hook / off-hook control
-* 2–4 wire conversion
-* audio coupling
+## Hardware Modules
 
-Typically includes:
-
-* isolation transformer
-* protection components (MOVs, sidactors, resettable fuses)
-* SLIC/DAA module (if available)
-
-### **2. MCU / DSP Module**
+### 1. FXO Line Interface
 
 Handles:
 
-* modem DSP (analog carrier encode/decode)
-* TTY Baudot encode/decode
-* mode control
-* line-state sensing
-* USB-C or BLE communication with host
+* Line connection (RJ11 / 66 block / 110 block)
+* Ring detection
+* Off-hook relay or solid-state switch
+* Isolation barrier
+* Surge protection (MOVs, TVS diodes)
 
-Candidate platforms:
+### 2. Audio Path
 
-* ESP32-S3
-* STM32 variants
-* RP2040 + external codec
+Supports:
 
-### **3. Audio Codec**
+* Voice band audio (300–3400 Hz)
+* Modem data
+* Baudot TTY tones
+* WebAudio routing through host
 
-Provides:
+### 3. High-Impedance Monitor
 
-* ADC/DAC paths for modem/TTY/voice
-* filtering
-* gain control
+Allows safe passive listening without off-hook events.
 
-### **4. Power Subsystem**
+* High-value resistor network
+* Differential sensing
+* DC blocking
 
-* USB-C power input
-* optional battery (TBD)
-* protection and regulation
+### 4. DSP + Control MCU
 
-Uniline does *not* draw power from the phone line.
+* Modem DSP
+* TTY encoding/decoding
+* Line state sensing
+* Mode switching
+* WebSerial/WebUSB/BLE control
+
+### 5. Power System
+
+* USB-C input
+* Filtering + regulation
+* Overcurrent protection
+* Optional battery-backed real-time clock
+
+### 6. Protection + Isolation
+
+* Transformer or solid-state isolation
+* Surge and lightning protection components
+* Fail-safe monitoring path
 
 ---
 
-## Safety Notes
+## Schematics
 
-* The analog telephone network can carry high voltages (ring voltage 70–90 Vrms).
-* Hardware **must** maintain isolation and meet basic telecom safety practices.
-* High-impedance monitor mode should default to safe, non-seizing behavior.
-* Do **not** attach Uniline to:
+See:
 
-  * fire-alarm control loops
-  * elevator emergency circuits
-  * other life-safety systems
-
----
-
-## Directory Structure
-
-```text
-hardware/
-  README.md        ← this file
-  bom.md           ← bill of materials (components + sourcing)
-  schematics/      ← diagrams, PDFs, KiCad files
 ```
+hardware/schematics/
+```
+
+---
+
+## Bill of Materials
+
+See:
+
+```
+hardware/bom.md
+```
+
+---
+
+## Safety Notice
+
+Uniline should only be connected to:
+
+* Standard POTS lines
+* PBX analog stations
+* Residential/commercial copper loops
+
+Do **not** connect to:
+
+* Direct fire panel circuits (except passive monitoring)
+* Alarm reporting lines during operation
+* Unknown or unverified telco infrastructure
+
+Damage to life-safety systems is prohibited.
 
 ---
 
 ## Status
 
-The hardware is **early-stage**. Schematics, enclosure design, and PCB files are forthcoming.
-
-Contributions from telecom, embedded, and RF engineers are welcomed.
+Hardware design is in early conceptual development.
+Schematics, reference designs, and manufacturing notes are evolving.
 
 ---
 
 ## License
 
-All hardware documentation and designs are released under **CC0 1.0** (Public Domain).
+All hardware documentation is released under **CC0 1.0 (Public Domain)**.
+You may use, modify, or redistribute without request.
