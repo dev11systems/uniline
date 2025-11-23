@@ -1,18 +1,21 @@
 # Uniline Hardware
 
-The Uniline hardware module provides the physical interface between a host device (phone or laptop) and the analog telephone network (POTS). It is designed for resilience, safety, and simplicity — enabling DATA, VOICE, and TTY operation with minimal components.
+The Uniline hardware module provides the physical interface between a host device (phone or laptop) and the analog telephone network (POTS). It is designed for resilience, safety, and simplicity — enabling **DATA**, **VOICE**, and **TTY** operation with minimal components.
 
-This directory contains documentation and references for:
+This directory includes full documentation for:
 
 * The FXO line interface
 * Isolation and safety requirements
 * Audio routing and switching
+* High-impedance line monitoring
 * Mode control hardware
 * Power design
+* Enclosure design
+* Testing and validation workflows
 * PCB schematics
 * Bill of materials (BOM)
 
-Uniline is intended for educational, humanitarian, and resilience-focused use.
+Uniline is intended for **educational, humanitarian, and resilience-focused use**.
 
 ---
 
@@ -20,63 +23,80 @@ Uniline is intended for educational, humanitarian, and resilience-focused use.
 
 * **Safe, isolated access** to analog phone lines
 * **Unified hardware path** for data, voice, and TTY
-* **Low part-count design** suitable for small-scale or DIY manufacturing
+* **Low part-count design** suitable for DIY or small-scale manufacturing
 * **High-impedance monitoring** without seizing the line
-* **Configurable off-hook control** for voice or data
-* **Modular sections**: audio, DSP, detection, FXO interface
-* **Compatible with WebSerial/WebUSB firmware** running on the MCU
+* **Configurable off-hook control** for Talk/Data modes
+* **Modular architecture** (audio, DSP, FXO interface, detection)
+* **Fully compatible** with WebSerial/WebUSB firmware
 
 ---
 
-## Hardware Modules
+# Hardware Document Index
 
-### 1. FXO Line Interface
+### **1. fxo-interface.md — Line Interface & Signaling**
 
-Handles:
+Explains how Uniline connects to analog lines using an isolated FXO circuit. Covers off-hook control, ring detection, loop current sensing, and surge protection.
 
-* Line connection (RJ11 / 66 block / 110 block)
-* Ring detection
-* Off-hook relay or solid-state switch
-* Isolation barrier
-* Surge protection (MOVs, TVS diodes)
+### **2. audio-path.md — Analog Audio Architecture**
 
-### 2. Audio Path
+Details the AC-coupled voiceband path supporting:
 
-Supports:
-
-* Voice band audio (300–3400 Hz)
-* Modem data
+* Voice audio
+* Modem tones
 * Baudot TTY tones
-* WebAudio routing through host
 
-### 3. High-Impedance Monitor
+Also includes filtering, gain staging, and transformer coupling.
 
-Allows safe passive listening without off-hook events.
+### **3. isolation-and-safety.md — Electrical Safety Model**
 
-* High-value resistor network
-* Differential sensing
-* DC blocking
+Describes the reinforced isolation barrier that protects the user, host, and PSTN. Includes:
 
-### 4. DSP + Control MCU
+* 1–3 kV isolation design
+* GDT/MOV/TVS surge stack
+* High-impedance monitor safeguards
 
-* Modem DSP
-* TTY encoding/decoding
-* Line state sensing
-* Mode switching
-* WebSerial/WebUSB/BLE control
+### **4. line-monitor.md — High-Impedance Monitoring System**
 
-### 5. Power System
+Passive, non-intrusive line monitoring for diagnostics:
 
-* USB-C input
-* Filtering + regulation
-* Overcurrent protection
-* Optional battery-backed real-time clock
+* Zero off-hook risk
+* Tone detection (dial tone, TTY, modem)
+* Noise floor analysis
 
-### 6. Protection + Isolation
+### **5. power.md — Power Architecture**
 
-* Transformer or solid-state isolation
-* Surge and lightning protection components
-* Fail-safe monitoring path
+Covers:
+
+* USB-C primary power
+* Optional battery module
+* Isolated DC/DC supply
+* Noise-optimized analog power
+
+### **6. enclosure.md — Mechanical & Field Design**
+
+Rugged field-ready enclosure design:
+
+* Port layout (USB-C, RJ11, clips)
+* Shock and moisture resistance
+* Cable management
+
+### **7. testing.md — Hardware Validation & QA**
+
+Provides full step-by-step procedures for validating:
+
+* Isolation
+* Mode behavior
+* Off-hook correctness
+* TTY/Modem performance
+* Environmental durability
+
+### **8. schematics/ — Electrical Reference Designs**
+
+Contains circuit diagrams, PCB layout drafts, and reference implementations.
+
+### **9. bom.md — Bill of Materials**
+
+Component lists for FXO, audio, power, and enclosure modules.
 
 ---
 
@@ -105,7 +125,7 @@ hardware/bom.md
 Uniline should only be connected to:
 
 * Standard POTS lines
-* PBX analog stations
+* PBX analog station ports
 * Residential/commercial copper loops
 
 Do **not** connect to:
@@ -120,12 +140,10 @@ Damage to life-safety systems is prohibited.
 
 ## Status
 
-Hardware design is in early conceptual development.
-Schematics, reference designs, and manufacturing notes are evolving.
+Hardware design is in early conceptual development. Schematics, reference designs, and manufacturing notes are actively evolving.
 
 ---
 
 ## License
 
-All hardware documentation is released under **CC0 1.0 (Public Domain)**.
-You may use, modify, or redistribute without request.
+All hardware documentation is released under **CC0 1.0 (Public Domain)**. You may use, modify, or redistribute without permission.
