@@ -7,19 +7,22 @@
 
 * **Encrypted low-bandwidth data** (text, telemetry, coordination)
 * **TTY text calls** (Baudot tones for degraded or accessibility communication)
-* **Voice calls and buttset functionality** using a smartphone as the handset
+* **Voice calls and buttset functionality**, using a smartphone or laptop as the handset
 * **High‑impedance line monitoring** for diagnostics and safety
 
 It is a single device capable of **DATA**, **VOICE**, and **TTY** across one unified physical interface.
 
-No cell service, wi-fi, or internet required. Just the **Uniline** kit, a phone or laptop, and an analog line.
+**No native apps are required** — all interaction happens through a **single-file Web GUI** (`web/index.html`) that runs fully offline in any modern browser.
+
+**, **VOICE**, and **TTY** across one unified physical interface.
+
+No cell service, Wi‑Fi, or internet required — just the **Uniline** device, a phone or laptop, and an analog line.
 
 ---
 
 # Status
 
-⚠️ **Early conceptual design.**
-Hardware, firmware, and cryptographic components are not production‑ready.
+⚠️ **Early conceptual design.** Hardware, firmware, API, and crypto components are not production‑ready.
 
 ---
 
@@ -29,157 +32,137 @@ Modern communication depends on:
 
 * Cell towers
 * Power grid
-* Routers and fiber/IP networks
-* Cloud dependency chains
+* Routers and IP networks
+* Cloud services
 
 These layers fail in:
 
-* Disasters
-* Infrastructure collapse
+* Natural disasters
+* Grid collapse
 * Conflict zones
-* Grid outages
+* Infrastructure outages
 * Remote or underserved regions
 
-But copper lines (POTS) often remain functional because they are:
+Yet copper lines (POTS) often remain functional because they are:
 
 * Centrally powered
-* Simple and robust
-* Built for disaster survivability
-* Geographically diverse in their routing
+* Shockingly robust
+* Built for emergency survivability
+* Routed through diverse infrastructure
 
-**Uniline explores how to use these surviving lines for essential communication when everything else is offline.**
+**Uniline explores how these surviving lines can carry essential communication when everything else is offline.**
 
 ---
 
 # Capabilities
 
-Uniline supports three integrated communication layers:
+Uniline integrates three communication layers:
 
 ## 1. **Encrypted Low‑Bandwidth Data**
 
-Two Uniline nodes can call each other, negotiate an analog modem link, and establish a secure, encrypted digital channel.
+Two Uniline nodes dial each other, negotiate an analog modem link, then establish an encrypted digital channel.
 
 Throughput: **300 bps → ~33.6 kbps**
 
-Enough for:
+Suitable for:
 
 * Text messages
-* GPS/location beacons
-* Status updates
-* Sensor/telemetry packets
-* Command/control signals
+* Status beacons
+* GPS/location bursts
+* Sensor telemetry
+* Command/control packets
 * Minimal protocol tunneling
 
-Encryption is layered above the modem to keep the analog side simple.
+Encryption sits *above* the modem for simplicity and resilience.
 
 ---
 
 ## 2. **Voice + Buttset Functionality**
 
-Uniline can behave like a traditional lineman’s handset:
+Uniline can emulate a lineman’s handset.
 
 ### **Monitor Mode (High‑Impedance)**
 
 * Passive listening
 * Does *not* seize the line
-* Check dial tone, noise, alarms, TTY tones, or modem traffic
+* Diagnose dial tone, noise, alarms, modem activity, and TTY
 
 ### **Talk Mode (Off‑Hook Voice)**
 
 * Seizes the line
-* Allows voice calls
-* Smartphone acts as the microphone/headset
+* Allows normal voice calls
+* Phone acts as headset/microphone
 
-### Phone Audio Options
+### Supported Audio Paths
 
-* **USB‑C (digital audio)** – clean, reliable
-* **Bluetooth HFP** – wireless, works offline
-
-This keeps the hardware minimal while leveraging your phone as the handset.
+* **USB‑C digital audio**
+* **Bluetooth HFP** (offline-capable)
 
 ---
 
-## 3. **Integrated TTY Support (Text Calls via Baudot)**
+## 3. **Integrated TTY Support**
 
-TTY is built directly into Uniline's audio/modem stack.
+TTY is part of Uniline’s modem/audio stack.
 
-TTY capability includes:
+* Full Baudot send/receive
+* Auto-detection of incoming TTY tones
+* Relay center compatibility
+* VCO/HCO hybrid modes
+* Text ↔ tone conversion
 
-* Full Baudot send/receive (45.45 baud)
-* Text‑only TTY calls
-* Auto‑detection of incoming TTY tones (from relay centers or other devices)
-* VCO/HCO hybrid modes:
+TTY operates across:
 
-  * **VCO**: User speaks, receives TTY text
-  * **HCO**: User types, listens to voice
-* TTY text ↔ App UI bridging:
-
-  * Incoming tones → decoded to text
-  * Outgoing text → encoded to tones
-
-TTY works in:
-
-* **Talk Mode** (primary for TTY calls)
-* **Monitor Mode** (tone detection / passive decode)
-* **Data Mode** (optional TTY‑over‑data fallback)
+* **Talk Mode** (primary TTY mode)
+* **Monitor Mode** (passive decode)
+* **Data Mode** (TTY‑over‑data fallback)
 
 ---
 
 # Operating Modes
 
-Uniline is a **multi‑mode node**, but DATA/VOICE/TTY are not separate silos — they share the same line interface.
+Uniline is multi‑mode, but DATA/VOICE/TTY share a unified interface.
 
-### **1. DATA MODE — encrypted digital communication**
+### **1. DATA MODE — encrypted digital link**
 
-* Modem DSP establishes link
-* Crypto layer secures payloads
-* Phone/host exchanges messages via USB‑C or BLE
-* Optional TTY‑over‑data fallback
+* Modem DSP + crypto layer
+* Host communicates over USB‑C/BLE
+* Optional TTY‑over‑data
 
-### **2. MONITOR MODE — high‑impedance listening**
+### **2. MONITOR MODE — passive listening**
 
-* Passive, line not seized
+* High‑impedance
 * Safe diagnostics
-* Detects:
-
-  * Dial tone
-  * Noise level
-  * Active modems
-  * Alarm dialers
-  * TTY tones
+* Detects tone/noise/modem/TTY activity
 
 ### **3. TALK MODE — voice + tty**
 
-* Seizes line (off-hook)
-* Smartphone acts as handset
-* Used for:
-
-  * Standard voice calls
-  * TTY text calls
-  * VCO/HCO hybrids
-  * DTMF dialing
+* Off‑hook control
+* Voice calls
+* TTY calls
+* VCO/HCO hybrids
+* DTMF dialing
 
 ---
 
 # System Overview
 
 ```
-PHONE / APP (Android / laptop)
+PHONE / LAPTOP
    │ USB‑C / Bluetooth
    ▼
 +--------------------------+
-|       Uniline node       |
-|  modem • tty • buttset   |
+|       Uniline Node       |
+|   modem • tty • buttset  |
 +--------------------------+
    │
    ▼
 Analog Phone Line (RJ11 / 66 / 110)
    │
    ▼
-   PSTN
+         PSTN
    │
    ▼
-Another Uniline node
+ Another Uniline Node
 ```
 
 ---
@@ -187,79 +170,76 @@ Another Uniline node
 # Architecture
 
 ```
-PHONE
-(Android / laptop)
-   │  USB‑C serial + audio
+PHONE (Android / Laptop)
+   │  USB‑C Serial + Digital Audio
    │  Bluetooth BLE + HFP
    ▼
 ┌────────────────────────────┐
-│         Uniline node        │
+│        Uniline Node        │
 ├────────────────────────────┤
-│ Mode control (Data/Monitor/Talk)
-│ Crypto layer (E2EE)
+│ Mode Controller (Data/Monitor/Talk)
+│ Crypto Layer (E2EE)
 │ Modem + TTY DSP
 ├────────────────────────────┤
-│ Analog audio switch
-│ FXO line interface
-│ Off‑hook control + isolation
+│ Analog Audio Switch
+│ FXO Line Interface
+│ Isolation + Off‑Hook Control
 └────────────────────────────┘
    │
    ▼
-Analog line / PSTN
+Analog Line / PSTN
 ```
 
 ---
 
 # Why Uniline Matters in Crisis Environments
 
-Uniline is designed as a humanitarian and resilience-focused communication tool. In conflict zones, civil unrest, or infrastructure collapse, it can:
+Uniline is designed for resilience and humanitarian use. In conflict zones, civil unrest, or infrastructure collapse, it can:
 
-* Support medical aid coordination when cellular and internet services fail
-* Provide fallback communication for shelters, clinics, and emergency centers
-* Enable family reunification and safety check-ins across regions
-* Maintain long-distance contact between communities through surviving PSTN links
-* Support NGO and relief operations with simple text, voice, and TTY channels
-* Offer degraded-line communication options via TTY when voice/data fail
+* Support medical/shelter communication when cell networks fail
+* Enable long‑distance PSTN‑based contact between communities
+* Provide emergency text/voice channels for NGOs and relief teams
+* Support accessibility via TTY when voice or data fail
 * Operate during long power outages due to PSTN’s centralized power
-* Allow continuity of operations for schools, small local governments, and community hubs
+* Act as a fallback coordination tool for community hubs
 
 ---
 
 # Intended Uses
 
-For **ethical, non‑destructive** use only:
+Ethical, non‑destructive use only:
 
 * Disaster response
 * Community resilience
 * Humanitarian coordination
-* Backup communication for shelters/clinics
-* Outage conditions (power + internet down)
-* Research into PSTN behavior
-* Accessibility and text‑call studies
+* Crisis shelters and clinics
+* Power + internet outages
+* PSTN research
+* Accessibility/TTY studies
 
-Life‑safety systems (fire panels, emergency circuits) should only be monitored passively unless in legitimate emergencies.
+Life‑safety systems (e.g., fire panels) must be monitored passively unless in legitimate emergencies.
 
 ---
 
 # Non‑Goals
 
-Uniline is **not** intended for:
+Uniline is **not** for:
 
 * Unauthorized telecom access
 * Unlawful communication
 * High‑speed networking
-* Any interference with life‑safety systems
+* Interfering with life‑safety systems
 
 ---
 
 # Project Philosophy
 
-Uniline is part of **dev://systems** — exploring:
+Uniline is part of **dev://systems**, exploring:
 
-* Universal coherence across infrastructure layers
-* Resilient + humane engineering
-* Civil benefit through open tools
-* Layered communication that survives failure
+* Universal coherence in infrastructure
+* Humane, resilient engineering
+* Open tools for public benefit
+* Communication layers that survive systemic failure
 
 ---
 
@@ -284,6 +264,9 @@ Uniline/
     cli/
     gui/
     mobile/
+  web/
+    index.html
+    README.md
   examples/
     demo-topologies.md
     sample-workflows.md
@@ -293,21 +276,21 @@ Uniline/
 
 # Contributing
 
-Looking for contributors with backgrounds in:
+Looking for contributors with experience in:
 
-* Telephony/PSTN engineering
+* Telephony / PSTN systems
 * Modem DSP
 * Crypto protocol design
 * Embedded systems
-* Disaster communication
-* Accessibility/TTY research
+* Disaster-resilient communication
+* Accessibility / TTY research
 
-Open an issue before major contributions.
+Please open an issue before large contributions.
 
 ---
 
 # License
 
-This project is licensed under CC0 1.0 Universal (Public Domain Dedication).
-You may copy, modify, distribute, and use the work for any purpose without asking permission.
-See: https://creativecommons.org/publicdomain/zero/1.0/
+Released under **CC0 1.0 Universal** (Public Domain Dedication).
+You may copy, modify, distribute, and use the work without restriction.
+See: [https://creativecommons.org/publicdomain/zero/1.0/](https://creativecommons.org/publicdomain/zero/1.0/)
