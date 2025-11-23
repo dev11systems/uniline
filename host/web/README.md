@@ -1,76 +1,129 @@
 # Uniline Web GUI
 
-The Uniline Web GUI is the **primary user interface** for operating a Uniline node. It runs entirely in the browser and is designed to work:
-
-- offline
-- without cell or Wi-Fi
-- on phones, tablets, and laptops
-
-All you need is:
-
-- a Uniline node
-- a USB-C cable (preferred) or Bluetooth
-- a modern browser with WebSerial/WebUSB/WebBluetooth support
+This folder contains the **primary user interface** for Uniline. The Web GUI replaces native and mobile apps by running fully in the browser using WebSerial, WebUSB, and WebBluetooth, and can function entirely offline.
 
 ---
 
-## Capabilities
+## Goals
 
-The Web GUI provides:
+* Zero native dependencies
+* Works on any device with a modern browser
+* Offline-first (no internet or cell required)
+* Minimal, dev://systems aesthetic
+* Unified interface for Data, Monitor, Talk, and TTY modes
+* Leverages WebAudio + WebSerial for real-time line interaction
+
+---
+
+## Structure
+
+```
+web/
+  README.md        ← this file
+  index.html       ← main UI shell
+  css/
+    style.css      ← theme + layout
+  js/
+    uniline-api.js ← device API bindings
+    ui.js          ← UI logic
+```
+
+---
+
+## Features
 
 ### 1. Mode Control
 
-- switch between **Data**, **Monitor**, and **Talk** modes
-- see current line state:
-  - on-hook / off-hook
-  - dial tone present / absent
-  - ringing / idle
-  - link quality indicators
+* Switch between **Data**, **Monitor**, and **Talk** modes
+* Visual status indicators for:
+
+  * device connection
+  * line state
+  * link health
 
 ### 2. Secure Messaging (Data Mode)
 
-- send and receive encrypted text messages
-- view message logs and delivery state
-- show basic link stats (throughput, retries, error rate)
-- support small telemetry/status messages
+* Encrypted text exchange
+* Delivery receipts
+* Message logs
+* Basic link stats
 
-### 3. TTY Text Support
+### 3. TTY Support
 
-- live TTY (Baudot) decode and display
-- type-to-TTY input
-- auto-detection of incoming TTY tones
-- hybrid modes such as VCO/HCO
-- optional “TTY-over-data” fallback for very noisy lines
+* Live Baudot decoding
+* Typed TTY output
+* VCO/HCO hybrid mode
+* Tone detection events
 
-### 4. Voice / Talk Mode
+### 4. Voice Support (Talk Mode)
 
-- use the device mic/speaker or headset
-- call controls (dialpad, hangup, timer)
-- visual status for audio path and line state
+* Uses system mic/speaker or headset
+* DTMF keypad
+* Call timer
 
 ### 5. Monitor / Diagnostics
 
-- high-impedance Monitor mode
-- noise level visualization
-- dial tone / ring detection
-- TTY/modem tone detection
-- quick indication of whether a line is usable
+* High-impedance line monitoring
+* Noise-level visualization
+* Dial tone and ring detection
+* Tone detection (TTY / modem)
 
 ---
 
-## Architecture
+## How It Connects
 
-Two main deployment patterns:
+The Web GUI communicates with the Uniline node using:
 
-### A. Served from the Uniline Node
+### **WebSerial (recommended)**
 
-The Uniline device runs a tiny HTTP server:
+* USB-C cable required
+* Works offline
+* Fast and stable data path
 
-```text
-Browser (phone/laptop)
-   │  USB-NIC / Wi-Fi AP
-   ▼
-Uniline Web Server
-   │
-   ▼
-Device Control + Line Interface
+### **WebUSB** (optional)
+
+* Device exposes USB endpoints
+* Browser communicates natively
+
+### **WebBluetooth** (control-only fallback)
+
+* Low bandwidth
+* For situations where USB cannot be used
+
+---
+
+## Loading the Interface
+
+Two approaches are supported:
+
+### **1. Served from the Uniline node**
+
+Visit:
+
+```
+http://uniline.local
+```
+
+The GUI is hosted by the device itself.
+
+### **2. Static Web App**
+
+Open `index.html` from:
+
+* local filesystem
+* dev://systems site
+* GitHub Pages
+
+Then click **Connect Device** to initialize WebSerial/WebUSB.
+
+---
+
+## Status
+
+Early but functional skeleton UI exists in `index.html`. JavaScript API and device binding logic to be built next.
+
+---
+
+## License
+
+All Web GUI code is released under **CC0 1.0** (Public Domain).
